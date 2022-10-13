@@ -52,9 +52,8 @@ class TgUploader:
                     except Exception as e:
                         if self.__is_cancelled:
                             return
-                        else:
-                            LOGGER.error(e)
-                            continue
+                        LOGGER.error(e)
+                        continue
                     self.__upload_file(up_path, file_, dirpath)
                     if self.__is_cancelled:
                         return
@@ -160,7 +159,7 @@ class TgUploader:
         if self.__thumb is None and thumb is not None and ospath.lexists(thumb):
             osremove(thumb)
         if not self.__is_cancelled and \
-                   (not self.__listener.seed or self.__listener.newDir or dirpath.endswith("splited_files_mltb")):
+                       (not self.__listener.seed or self.__listener.newDir or dirpath.endswith("splited_files_mltb")):
             try:
                 osremove(up_path)
             except:
@@ -177,10 +176,11 @@ class TgUploader:
 
     def __user_settings(self):
         user_id = self.__listener.message.from_user.id
-        if user_id in user_data and user_data[user_id].get('as_doc'):
-            self.__as_doc = True
-        elif user_id in user_data and user_data[user_id].get('as_media'):
-            self.__as_doc = False
+        if user_id in user_data:
+            if user_data[user_id].get('as_doc'):
+                self.__as_doc = True
+            elif user_data[user_id].get('as_media'):
+                self.__as_doc = False
         if not ospath.lexists(self.__thumb):
             self.__thumb = None
 
