@@ -71,8 +71,7 @@ def rss_sub(update, context):
         else:
             filters = None
 
-        exists = rss_dict.get(title)
-        if exists:
+        if exists := rss_dict.get(title):
             return sendMessage("This title already subscribed! Choose another title!", context.bot, update.message)
         try:
             rss_d = feedparse(feed_link)
@@ -119,16 +118,15 @@ def rss_sub(update, context):
 def rss_unsub(update, context):
     try:
         title = context.args[0]
-        exists = rss_dict.get(title)
-        if not exists:
-            msg = "Rss link not exists! Nothing removed!"
-            sendMessage(msg, context.bot, update.message)
-        else:
+        if exists := rss_dict.get(title):
             DbManger().rss_delete(title)
             with rss_dict_lock:
                 del rss_dict[title]
             sendMessage(f"Rss link with Title: <code>{title}</code> has been removed!", context.bot, update.message)
             LOGGER.info(f"Rss link with Title: {title} has been removed!")
+        else:
+            msg = "Rss link not exists! Nothing removed!"
+            sendMessage(msg, context.bot, update.message)
     except IndexError:
         sendMessage(f"Use this format to remove feed url:\n/{BotCommands.RssUnSubCommand[0]} Title", context.bot, update.message)
 
@@ -140,7 +138,7 @@ def rss_settings(update, context):
     else:
         buttons.sbutton("Start", "rss start")
     if AUTO_DELETE_MESSAGE_DURATION == -1:
-        buttons.sbutton("Close", f"rss close")
+        buttons.sbutton("Close", "rss close")
     button = buttons.build_menu(1)
     setting = sendMarkup('Rss Settings', context.bot, update.message, button)
     Thread(target=auto_delete_message, args=(context.bot, update.message, setting)).start()
@@ -203,7 +201,11 @@ def rss_monitor(context):
                     break
                 parse = True
                 for list in data['filters']:
-                    if not any(x in str(rss_d.entries[feed_count]['title']).lower() for x in list):
+                    if all(
+                        x
+                        not in str(rss_d.entries[feed_count]['title']).lower()
+                        for x in list
+                    ):
                         parse = False
                         feed_count += 1
                         break
